@@ -159,13 +159,28 @@ Panel {
     root.notice = "copied install command for " + row.name
   }
 
+  // The marketplace listing, not the repository. It carries the preview, the
+  // rendered description, the install command and the heart control, which is
+  // what someone deciding on a plugin actually wants. The repo is a separate
+  // question and gets its own key.
   function openSelected() {
     var row = root.selected()
     if (!row) return
-    var url = Model.repoUrl(row.repo)
+    var url = Model.listingUrl(row.id)
     if (!url) return
     openProc.command = ["xdg-open", url]
     openProc.running = true
+    root.notice = "opened the listing for " + row.name
+  }
+
+  function openRepoSelected() {
+    var row = root.selected()
+    if (!row) return
+    var url = Model.repoUrl(row.repo)
+    if (!url) { root.notice = "no repository listed for " + row.name; return }
+    openProc.command = ["xdg-open", url]
+    openProc.running = true
+    root.notice = "opened the repository for " + row.name
   }
 
   function toggleSaveSelected() {
@@ -266,6 +281,7 @@ Panel {
       onActivateRequested: root.copySelected()
       onTextKey: function (t) {
         if (t === "o") root.openSelected()
+        else if (t === "g") root.openRepoSelected()
         else if (t === "s") root.toggleSaveSelected()
         else if (t === "t") root.cycleSort()
         else if (t === "f") root.cycleCategory()
@@ -651,7 +667,7 @@ Panel {
               anchors.verticalCenter: parent.verticalCenter
               text: root.notice !== ""
                 ? root.notice
-                : "enter copy  \u00b7  o repo  \u00b7  s save  \u00b7  a saved  \u00b7  t sort  \u00b7  c clear  \u00b7  r refresh"
+                : "enter copy  \u00b7  o listing  \u00b7  g repo  \u00b7  s save  \u00b7  a saved  \u00b7  t sort  \u00b7  c clear"
               textFormat: Text.PlainText
               wrapMode: Text.WordWrap
               color: root.bar ? Qt.darker(root.bar.foreground, 1.7) : Color.muted

@@ -459,6 +459,19 @@ function safeInstallCommand(cmd) {
   return s
 }
 
+// The marketplace listing page for a plugin. This is the better destination
+// than the repository for almost every purpose: it carries the preview image,
+// the rendered description, the install command, and the heart control. The
+// repo is where you go to read the code, which is a different question.
+//
+// The id is placed in a query parameter, so it is percent-encoded and validated
+// against the shape the marketplace actually issues rather than trusted.
+function listingUrl(id) {
+  var s = String(id || "").trim()
+  if (!/^[A-Za-z0-9][A-Za-z0-9._-]{0,120}$/.test(s)) return ""
+  return "https://omarchyplugins.com/plugin.html?id=" + encodeURIComponent(s)
+}
+
 function repoUrl(repo) {
   var s = String(repo || "").trim()
   return /^https:\/\/github\.com\/[A-Za-z0-9._\/-]+$/.test(s) ? s : ""
@@ -504,6 +517,7 @@ if (typeof module !== "undefined") {
     velocityText: velocityText,
     ageText: ageText,
     safeInstallCommand: safeInstallCommand,
+    listingUrl: listingUrl,
     repoUrl: repoUrl
   }
 }

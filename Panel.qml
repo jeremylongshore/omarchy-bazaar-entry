@@ -37,13 +37,20 @@ Panel {
   property string query: ""
   property string category: ""
   property string tag: ""
+  property string kind: ""
   property bool savedOnly: false
+  property bool installedOnly: false
   property string sortKey: "velocity"
   property int cursor: 0
 
   readonly property var allRows: {
     root.revision
     return root.service ? root.service.rows : []
+  }
+
+  readonly property var installedMap: {
+    root.revision
+    return root.service ? root.service.installed : ({})
   }
 
   readonly property var savedMap: {
@@ -69,7 +76,9 @@ Panel {
 
   readonly property var visibleRows: {
     var r = Model.search(root.allRows, root.query)
-    r = Model.filter(r, root.category, root.tag, root.savedOnly, root.savedMap)
+    r = Model.filter(r, root.category, root.tag, root.savedOnly, root.savedMap,
+                     { kind: root.kind, installedOnly: root.installedOnly,
+                       installed: root.installedMap })
     return Model.sort(r, root.sortKey)
   }
 
@@ -82,6 +91,15 @@ Panel {
   // Capped at the most populated ones, plus whichever is currently selected so
   // an active filter is always visible even when it is outside the top set.
   readonly property int chipsMax: 8
+
+  // Kind is a second, shorter axis. Plugin Manager filters on exactly this and
+  // Bazaar did not, which is a capability gap rather than a taste difference.
+  readonly property var kindModel: {
+    var out = [{ label: "ANY KIND", value: "" }]
+    var ks = Model.kindsByCount(root.allRows).slice(0, 5)
+    for (var i = 0; i < ks.length; i++) out.push({ label: ks[i].toUpperCase(), value: ks[i] })
+    return out
+  }
 
   readonly property var chipModel: {
     var out = [{ label: "ALL", value: "" }]
@@ -147,6 +165,25 @@ Panel {
   // build "printf %s <quoted> | wl-copy" through bash -c, which is correct but
   // depends on the quoting being right every time. A Process with no shell has
   // nothing to quote and nothing to escape.
+  // Enter INSTALLS now. Copying a command was the whole interaction, and both
+  // competing browsers install directly; a browser that can only tell you what
+  // to type is doing half the job. Copy is still there on y, because someone
+  // who wants to read the source before running it should not lose the command.
+  function installSelected() {
+    var row = root.selected()
+    if (!row || !root.service) return
+    if (!row.installAvailable) {
+      root.notice = row.name + " has no install command in the catalog"
+      return
+    }
+    if (Model.isInstalled(root.installedMap, row.id)) {
+      root.notice = row.name + " is already installed"
+      return
+    }
+    root.notice = "installing " + row.name + "…"
+    root.service.install(row.repo)
+  }
+
   function copySelected() {
     var row = root.selected()
     if (!row) return
@@ -195,6 +232,14 @@ Panel {
     root.cursor = 0
   }
 
+  function cycleKind() {
+    var ks = Model.kindsByCount(root.allRows)
+    if (!ks.length) return
+    var i = ks.indexOf(root.kind)
+    root.kind = (i < 0) ? ks[0] : (i === ks.length - 1 ? "" : ks[i + 1])
+    root.cursor = 0
+  }
+
   function cycleCategory() {
     var cats = Model.categories(root.allRows)
     if (!cats.length) return
@@ -204,7 +249,8 @@ Panel {
   }
 
   function clearFilters() {
-    root.query = ""; root.category = ""; root.tag = ""; root.savedOnly = false
+    root.query = ""; root.category = ""; root.tag = ""; root.kind = ""
+    root.savedOnly = false; root.installedOnly = false
     root.cursor = 0
   }
 
@@ -223,7 +269,13 @@ Panel {
 
   Connections {
     target: root.service
-    function onStoreChanged() { root.revision++ }
+    function onStoreChanged() {
+      root.revision++
+      if (root.service && root.service.installNotice) {
+        root.notice = root.service.installNotice
+        root.service.installNotice = ""
+      }
+    }
   }
 
   // Opening the panel is what "you looked" means, so the watermark moves here
@@ -278,9 +330,12 @@ Panel {
       onMoveRequested: function (dx, dy) { root.moveCursor(dy) }
       // PanelKeyCatcher emits returnRequested THEN activateRequested on the
       // same Return press, so wiring both would fire two copies on one keypress.
-      onActivateRequested: root.copySelected()
+      onActivateRequested: root.installSelected()
       onTextKey: function (t) {
-        if (t === "o") root.openSelected()
+        if (t === "y") root.copySelected()
+        else if (t === "k") root.cycleKind()
+        else if (t === "i") { root.installedOnly = !root.installedOnly; root.cursor = 0 }
+        else if (t === "o") root.openSelected()
         else if (t === "g") root.openRepoSelected()
         else if (t === "s") root.toggleSaveSelected()
         else if (t === "t") root.cycleSort()
@@ -337,9 +392,12 @@ Panel {
                   ? "Loading the marketplace"
                   : (Model.compact(root.visibleRows.length) + " of " +
                      Model.compact(root.allRows.length) + " plugins  ·  " +
+                     Model.compact(Model.installedCount(root.installedMap)) + " installed  ·  " +
                      Model.sortLabel(root.sortKey) +
                      (root.category ? "  ·  " + root.category.toUpperCase() : "") +
-                     (root.savedOnly ? "  ·  SAVED" : ""))
+                     (root.kind ? "  ·  " + root.kind.toUpperCase() : "") +
+                     (root.savedOnly ? "  ·  SAVED" : "") +
+                     (root.installedOnly ? "  ·  INSTALLED" : ""))
                 textFormat: Text.PlainText
                 width: heroCol.width
                 elide: Text.ElideRight
@@ -455,6 +513,53 @@ Panel {
             }
           }
 
+          // ---- Kind chips. A second, shorter axis than category.
+          Flow {
+            id: kindRow
+            width: parent.width - Style.spacing.controlPaddingX * 2
+            x: Style.spacing.controlPaddingX
+            spacing: Style.spacing.sm
+            visible: root.allRows.length > 0
+
+            Repeater {
+              model: root.kindModel
+
+              Rectangle {
+                required property var modelData
+                readonly property bool selected: modelData.value === root.kind
+                height: kindText.implicitHeight + Style.spacing.xs * 2
+                width: kindText.implicitWidth + Style.spacing.controlPaddingX
+                radius: height / 2
+                color: selected ? Style.selectedFill : "transparent"
+                border.width: Style.normalBorderWidth
+                border.color: root.bar
+                  ? Qt.rgba(root.bar.foreground.r, root.bar.foreground.g, root.bar.foreground.b,
+                            selected ? Style.selectedBorderAlpha : Style.normalBorderAlpha * 0.6)
+                  : Color.muted
+
+                Text {
+                  id: kindText
+                  anchors.centerIn: parent
+                  text: modelData.label
+                  textFormat: Text.PlainText
+                  elide: Text.ElideRight
+                  width: Math.min(implicitWidth, kindRow.width)
+                  color: parent.selected
+                    ? (root.bar ? root.bar.foreground : Color.foreground)
+                    : (root.bar ? Qt.darker(root.bar.foreground, 1.7) : Color.muted)
+                  font.family: root.bar ? root.bar.fontFamily : Style.font.family
+                  font.pixelSize: Style.font.caption
+                  font.letterSpacing: 1
+                }
+
+                MouseArea {
+                  anchors.fill: parent
+                  onClicked: { root.kind = parent.modelData.value; root.cursor = 0 }
+                }
+              }
+            }
+          }
+
           // ---- Results.
           Column {
             id: resultsCol
@@ -473,6 +578,8 @@ Panel {
 
                 readonly property bool isCursor: rowItem.index === root.cursor
                 readonly property bool isSaved: !!root.savedMap[rowItem.modelData.id]
+                readonly property bool isInstalled: Model.isInstalled(root.installedMap, rowItem.modelData.id)
+                readonly property bool hasUpdate: Model.hasUpdate(root.installedMap, rowItem.modelData)
 
                 Rectangle {
                   anchors.fill: parent
@@ -570,7 +677,11 @@ Panel {
                   spacing: Style.spacing.xxs
 
                   Text {
-                    text: (rowItem.isSaved ? "\u2605 " : "") + rowItem.modelData.name +
+                    // Installed state leads the row, because "do I already have
+                    // this" is the first question and the benchmark browsers
+                    // answer it while Bazaar did not.
+                    text: (rowItem.isInstalled ? (rowItem.hasUpdate ? "\u21bb " : "\u25cf ") : "") +
+                          (rowItem.isSaved ? "\u2605 " : "") + rowItem.modelData.name +
                           (rowItem.modelData.verified ? "  \u2713" : "")
                     // Names and descriptions are written by third parties, so
                     // every one of these renders as plain text and is bounded. A
@@ -597,8 +708,11 @@ Panel {
                   }
 
                   Text {
-                    text: (rowItem.modelData.isNew ? "NEW  \u00b7  " : "") +
+                    text: (rowItem.hasUpdate ? "UPDATE  \u00b7  "
+                           : rowItem.isInstalled ? "INSTALLED  \u00b7  " : "") +
+                          (rowItem.modelData.isNew ? "NEW  \u00b7  " : "") +
                           (root.showStalled && rowItem.modelData.stalled ? "NO INSTALL CMD  \u00b7  " : "") +
+                          (rowItem.modelData.kind ? rowItem.modelData.kind.toUpperCase() + "  \u00b7  " : "") +
                           rowItem.modelData.category.toUpperCase() +
                           (rowItem.modelData.tags.length ? "  \u00b7  " + rowItem.modelData.tags.join(" ") : "") +
                           "  \u00b7  " + Model.ageText(rowItem.modelData.listedAt, root.nowMs)
@@ -607,7 +721,9 @@ Panel {
                     elide: Text.ElideRight
                     color: rowItem.modelData.stalled
                       ? (root.bar ? root.bar.urgent : Color.urgent)
-                      : (root.bar ? Qt.darker(root.bar.foreground, 1.9) : Color.muted)
+                      : rowItem.hasUpdate
+                        ? Qt.hsla(0.11, 0.55, 0.62, 1.0)
+                        : (root.bar ? Qt.darker(root.bar.foreground, 1.9) : Color.muted)
                     font.family: root.bar ? root.bar.fontFamily : Style.font.family
                     font.pixelSize: Style.font.caption
                     font.letterSpacing: 1
@@ -620,7 +736,7 @@ Panel {
                   onClicked: function (m) {
                     root.cursor = rowItem.index
                     if (m.button === Qt.RightButton) root.openSelected()
-                    else root.copySelected()
+                    else root.installSelected()
                   }
                 }
               }
@@ -667,7 +783,7 @@ Panel {
               anchors.verticalCenter: parent.verticalCenter
               text: root.notice !== ""
                 ? root.notice
-                : "enter copy  \u00b7  o listing  \u00b7  g repo  \u00b7  s save  \u00b7  a saved  \u00b7  t sort  \u00b7  c clear"
+                : "enter install  \u00b7  y copy  \u00b7  o listing  \u00b7  s save  \u00b7  i installed  \u00b7  k kind  \u00b7  t sort  \u00b7  c clear"
               textFormat: Text.PlainText
               wrapMode: Text.WordWrap
               color: root.bar ? Qt.darker(root.bar.foreground, 1.7) : Color.muted

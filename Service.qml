@@ -61,6 +61,10 @@ Item {
   property double lastSeenAt: 0
   property var saved: Model.emptySaved()
 
+  // What is on this machine, keyed by plugin id. Refreshed on load, after every
+  // install, and whenever the panel opens.
+  property var installed: ({})
+
   property var rows: []
   property int newCount: 0
   property string lastError: ""
@@ -68,6 +72,9 @@ Item {
   property bool savedLoaded: false
   property bool fetchingCatalog: false
   property bool fetchingStats: false
+  property bool installing: false
+  property string installTarget: ""
+  property string installNotice: ""
 
   signal storeChanged()
 
@@ -139,6 +146,43 @@ Item {
     root.storeChanged()
   }
 
+  // Scan the plugins directory for what is already installed.
+  //
+  // Keyed by the id INSIDE each manifest, never by the directory name: Omarchy
+  // installs under the full plugin id, a hand clone is usually a short name, and
+  // both appear side by side in practice. Matching on the folder would report an
+  // installed plugin as missing.
+  //
+  // Bounded like every other external read here, because a plugins directory is
+  // user-controlled and this process never restarts.
+  function scanInstalled() {
+    installedProc.command = ["bash", "-c",
+      "cd \"$HOME/.config/omarchy/plugins\" 2>/dev/null || exit 0; "
+      + "n=0; for d in */; do "
+      + "[ -f \"$d/manifest.json\" ] || continue; "
+      + "n=$((n+1)); [ $n -gt " + Model.MAX_INSTALLED + " ] && break; "
+      + "head -c " + Model.MAX_MANIFEST_BYTES + " -- \"$d/manifest.json\" 2>/dev/null "
+      + "| jq -c --arg d \"${d%/}\" '{id,version,dir:$d}' 2>/dev/null; "
+      + "done; true"]
+    installedProc.running = true
+  }
+
+  // Install through the first-party CLI rather than reimplementing a clone.
+  //
+  // An argv array with no shell: the repo URL comes from a third-party catalog,
+  // and building a shell string out of it is the exec-injection shape gate c34
+  // exists to refuse. --yes is required because the CLI refuses to proceed
+  // without confirmation in a non-interactive context.
+  function install(repoUrl) {
+    var url = Model.repoUrl(repoUrl)
+    if (!url) { root.lastError = "refusing to install from an unrecognised URL"; return }
+    if (root.installing) return
+    root.installing = true
+    root.installTarget = url
+    installProc.command = ["omarchy", "plugin", "add", url, "--enable", "--yes"]
+    installProc.running = true
+  }
+
   function toggleSaved(id) {
     root.saved = Model.toggleSaved(root.saved, Model.DEFAULT_LIST, id)
     savedFile.setText(JSON.stringify(root.saved))
@@ -194,6 +238,7 @@ Item {
   // Refresh on open when the cache is stale, so the panel is current when it is
   // actually looked at and idle the rest of the time.
   function refreshIfStale() {
+    root.scanInstalled()
     root.poll()
   }
 
@@ -270,6 +315,7 @@ Item {
       root.lastSeenAt = Number(d.lastSeenAt) || 0
     }
     root.cacheLoaded = true
+    root.scanInstalled()
     root.rebuild()
     root.poll()
   }
@@ -287,6 +333,32 @@ Item {
         root.fetchingCatalog = false
         root.lastError = "catalog fetch failed"
       }
+    }
+  }
+
+  Process {
+    id: installedProc
+    stdout: StdioCollector {
+      waitForEnd: true
+      onStreamFinished: {
+        root.installed = Model.parseInstalled(text)
+        root.storeChanged()
+      }
+    }
+  }
+
+  Process {
+    id: installProc
+    stdout: StdioCollector { waitForEnd: true }
+    onExited: function (code) {
+      root.installing = false
+      // The CLI prints its own diagnostics; surface only the verdict, and
+      // rescan either way so a partial install is still reflected.
+      root.installNotice = code === 0
+        ? "installed, enable it from the bar settings if it did not appear"
+        : "install failed (exit " + code + ")"
+      root.scanInstalled()
+      root.storeChanged()
     }
   }
 

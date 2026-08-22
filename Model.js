@@ -221,20 +221,118 @@ function search(rows, query) {
   return out
 }
 
-function filter(rows, category, tag, savedOnly, saved) {
+// One filter, every axis. opts is optional so existing callers keep working.
+//   opts.kind          "Bar widget" | "Panel" | "Overlay" | "Service" | "Suite"
+//   opts.installedOnly show only what is on this machine
+//   opts.installed     the installed map, required by installedOnly
+function filter(rows, category, tag, savedOnly, saved, opts) {
   var c = String(category || "").toLowerCase()
   var g = String(tag || "").toLowerCase()
   var s = saved || {}
-  if (!c && !g && !savedOnly) return rows
+  var o = opts || {}
+  var k = String(o.kind || "").toLowerCase()
+  var inst = o.installed || {}
+  if (!c && !g && !savedOnly && !k && !o.installedOnly) return rows
   var out = []
   for (var i = 0; i < rows.length; i++) {
     var r = rows[i]
     if (c && r.category.toLowerCase() !== c) continue
     if (g && r.tags.indexOf(g) < 0) continue
+    if (k && String(r.kind || "").toLowerCase() !== k) continue
     if (savedOnly && !s[r.id]) continue
+    if (o.installedOnly && !inst[r.id]) continue
     out.push(r)
   }
   return out
+}
+
+// The kinds actually present, most populated first, for a capped chip row.
+function kindsByCount(rows) {
+  var count = {}
+  for (var i = 0; i < rows.length; i++) {
+    var k = rows[i].kind
+    if (k) count[k] = (count[k] || 0) + 1
+  }
+  var out = []
+  for (var key in count) if (Object.prototype.hasOwnProperty.call(count, key)) out.push(key)
+  out.sort(function (a, b) { return count[b] - count[a] || (a < b ? -1 : 1) })
+  return out
+}
+
+// ---------------------------------------------------------------------------
+// Installed state
+// ---------------------------------------------------------------------------
+
+// Bound the installed-plugin scan the same way every other external read here is
+// bounded. A plugins directory is user-controlled and this widget lives in a
+// process that never restarts.
+var MAX_INSTALLED = 256
+var MAX_MANIFEST_BYTES = 8192
+
+// What is already on this machine, keyed by plugin id.
+//
+// Keyed by the id INSIDE each manifest, never by the directory name. Omarchy
+// installs under the full plugin id, a hand clone is usually a short name, and
+// both appear side by side in practice: a single machine here had "bazaar" and
+// "io.github.jeremylongshore.bazaar" for the same plugin. Matching on the folder
+// would report one of them uninstalled and let a duplicate hide.
+function parseInstalled(text) {
+  var out = {}
+  var lines = String(text || "").split("\n")
+  var n = 0
+  for (var i = 0; i < lines.length && n < MAX_INSTALLED; i++) {
+    var line = lines[i].trim()
+    if (!line || line.charAt(0) !== "{") continue
+    var row
+    try { row = JSON.parse(line) } catch (e) { continue }
+    if (!row || !row.id) continue
+    out[String(row.id)] = { version: String(row.version || ""), dir: String(row.dir || "") }
+    n++
+  }
+  return out
+}
+
+function isInstalled(installed, id) {
+  return !!(installed && installed[id])
+}
+
+function installedCount(installed) {
+  var n = 0
+  for (var k in installed) if (Object.prototype.hasOwnProperty.call(installed, k)) n++
+  return n
+}
+
+// An installed plugin whose catalog version is newer than the one on disk.
+// Compared as dotted numeric segments, because "0.10.0" must beat "0.9.0" and a
+// string compare gets that backwards.
+function hasUpdate(installed, row) {
+  var rec = installed && installed[row.id]
+  if (!rec || !rec.version || !row.version) return false
+  return compareVersions(String(row.version), String(rec.version)) > 0
+}
+
+function compareVersions(a, b) {
+  var pa = String(a).split(/[.+-]/)
+  var pb = String(b).split(/[.+-]/)
+  for (var i = 0; i < Math.max(pa.length, pb.length); i++) {
+    var na = parseInt(pa[i], 10)
+    var nb = parseInt(pb[i], 10)
+    // A MISSING numeric segment is zero, not "smaller than everything".
+    // "1.2" and "1.2.0" are the same version, and the first cut of this
+    // returned "newer" for that pair, which would have painted a phantom
+    // update badge on an up-to-date plugin. A badge that cries wolf is worse
+    // than no badge.
+    var aMissing = i >= pa.length
+    var bMissing = i >= pb.length
+    if (aMissing && !isNaN(nb)) na = 0
+    if (bMissing && !isNaN(na)) nb = 0
+    // A non-numeric segment is a prerelease tag (1.0.0-beta). Treat the pair as
+    // equal rather than guessing an ordering: never claim an update on a tag
+    // difference alone.
+    if (isNaN(na) || isNaN(nb)) continue
+    if (na !== nb) return na > nb ? 1 : -1
+  }
+  return 0
 }
 
 // ---------------------------------------------------------------------------
@@ -504,7 +602,15 @@ if (typeof module !== "undefined") {
     sortLabel: sortLabel,
     categories: categories,
     categoriesByCount: categoriesByCount,
+    kindsByCount: kindsByCount,
     tags: tags,
+    MAX_INSTALLED: MAX_INSTALLED,
+    MAX_MANIFEST_BYTES: MAX_MANIFEST_BYTES,
+    parseInstalled: parseInstalled,
+    isInstalled: isInstalled,
+    installedCount: installedCount,
+    hasUpdate: hasUpdate,
+    compareVersions: compareVersions,
     emptySaved: emptySaved,
     parseSaved: parseSaved,
     isSaved: isSaved,

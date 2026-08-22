@@ -24,5 +24,5 @@ Nothing yet.
 Tooling and repository changes with no effect on the shipped plugin.
 
 - Vendor rig-render, which loads the plugin into a real shell
-- Add four-lane MiniMax review and backfill the changelog
+- Four-lane MiniMax review, backfilled changelog, and governance files
 

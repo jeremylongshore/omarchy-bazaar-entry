@@ -310,3 +310,88 @@ test("listingUrl points at the marketplace page and refuses a hostile id", () =>
     assert.equal(Model.listingUrl(bad), "", JSON.stringify(bad))
   }
 })
+
+// ------------------------------------------------------------ installed state
+
+test("parseInstalled keys on the manifest id, never the directory name", () => {
+  // Omarchy installs under the full plugin id, a hand clone is usually a short
+  // name, and both appear on the same machine in practice: the rig carried
+  // "listening-post" and "io.github.jeremylongshore.listening-post" for one
+  // plugin. Keying on the folder would report an installed plugin as missing
+  // and let a duplicate hide.
+  const text = [
+    JSON.stringify({ id: "io.github.x.thing", version: "1.0.0", dir: "thing" }),
+    JSON.stringify({ id: "io.github.x.thing", version: "1.0.0", dir: "io.github.x.thing" }),
+    JSON.stringify({ id: "io.github.x.other", version: "0.2.0", dir: "other" }),
+  ].join("\n")
+  const inst = Model.parseInstalled(text)
+  assert.equal(Model.installedCount(inst), 2, "the duplicate directory must collapse")
+  assert.equal(Model.isInstalled(inst, "io.github.x.thing"), true)
+  assert.equal(Model.isInstalled(inst, "io.github.x.other"), true)
+  assert.equal(Model.isInstalled(inst, "io.github.x.absent"), false)
+})
+
+test("parseInstalled survives junk lines without throwing", () => {
+  const text = 'garbage\n{not json\n\n' + JSON.stringify({ id: "a.b", version: "1" }) + "\nmore junk"
+  const inst = Model.parseInstalled(text)
+  assert.equal(Model.installedCount(inst), 1)
+  for (const bad of ["", null, undefined, "   "]) {
+    assert.equal(Model.installedCount(Model.parseInstalled(bad)), 0)
+  }
+})
+
+test("parseInstalled caps how many entries it will build", () => {
+  const many = Array.from({ length: 900 }, (_, i) =>
+    JSON.stringify({ id: "p" + i, version: "1.0.0" })).join("\n")
+  assert.equal(Model.installedCount(Model.parseInstalled(many)), Model.MAX_INSTALLED)
+})
+
+test("hasUpdate compares versions numerically, not as strings", () => {
+  // "0.10.0" must beat "0.9.0". A string compare gets this backwards and would
+  // tell a user they are up to date when they are a release behind.
+  const inst = Model.parseInstalled(JSON.stringify({ id: "a", version: "0.9.0" }))
+  assert.equal(Model.hasUpdate(inst, { id: "a", version: "0.10.0" }), true)
+  assert.equal(Model.hasUpdate(inst, { id: "a", version: "0.9.0" }), false)
+  assert.equal(Model.hasUpdate(inst, { id: "a", version: "0.8.9" }), false)
+  // Not installed, or no version on either side: never claim an update.
+  assert.equal(Model.hasUpdate(inst, { id: "b", version: "2.0.0" }), false)
+  assert.equal(Model.hasUpdate(inst, { id: "a", version: "" }), false)
+})
+
+test("compareVersions handles prerelease and ragged segment counts", () => {
+  assert.equal(Model.compareVersions("1.2.0", "1.2"), 0)
+  assert.equal(Model.compareVersions("1.2.1", "1.2"), 1)
+  assert.equal(Model.compareVersions("2.0.0", "10.0.0"), -1)
+  assert.equal(Model.compareVersions("1.0.0-beta", "1.0.0"), 0)
+})
+
+// ------------------------------------------------------------- kind filtering
+
+test("filter narrows by kind and by installed, and composes with the rest", () => {
+  const rows = Model.join(Model.parseCatalog(CATALOG), Model.parseStats(STATS), NOW)
+  const kind = Model.kindsByCount(rows)[0]
+  for (const r of Model.filter(rows, "", "", false, {}, { kind })) {
+    assert.equal(r.kind, kind)
+  }
+  const inst = {}
+  inst[rows[0].id] = { version: "0.0.1" }
+  const only = Model.filter(rows, "", "", false, {}, { installedOnly: true, installed: inst })
+  assert.equal(only.length, 1)
+  assert.equal(only[0].id, rows[0].id)
+})
+
+test("filter with no opts still behaves exactly as before", () => {
+  // Back-compat matters: the opts argument was added later and every existing
+  // call site passes five arguments.
+  const rows = Model.join(Model.parseCatalog(CATALOG), Model.parseStats(STATS), NOW)
+  assert.equal(Model.filter(rows, "", "", false, {}).length, rows.length)
+})
+
+test("kindsByCount orders by population and lists only kinds present", () => {
+  const rows = Model.join(Model.parseCatalog(CATALOG), Model.parseStats(STATS), NOW)
+  const ks = Model.kindsByCount(rows)
+  const counts = ks.map((k) => rows.filter((r) => r.kind === k).length)
+  for (let i = 1; i < counts.length; i++) assert.ok(counts[i - 1] >= counts[i])
+  for (const k of ks) assert.ok(rows.some((r) => r.kind === k))
+  assert.deepEqual(Model.kindsByCount([]), [])
+})

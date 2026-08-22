@@ -395,3 +395,62 @@ test("kindsByCount orders by population and lists only kinds present", () => {
   for (const k of ks) assert.ok(rows.some((r) => r.kind === k))
   assert.deepEqual(Model.kindsByCount([]), [])
 })
+
+// -------------------------------------------- installed scan truncation
+
+test("parseInstalled reports truncation when it hits the cap", () => {
+  // A bound applied SILENTLY is its own defect, and this is the second time the
+  // lesson has been learned in this family: the Crew Chief spool was bounded
+  // without saying so and would have reported a complete fleet that was short
+  // 338 sessions. Caught here by the security review lane before merge.
+  const many = Array.from({ length: 400 }, (_, i) =>
+    JSON.stringify({ id: "p" + i, version: "1.0.0" })).join("\n")
+  const map = Model.parseInstalled(many)
+  assert.equal(Model.installedCount(map), Model.MAX_INSTALLED)
+  assert.equal(Model.installedTruncated(), true, "a capped scan must report itself partial")
+})
+
+test("parseInstalled reports truncation when the census exceeds what it read", () => {
+  // The bound that actually bites is the reader's, and the parser cannot see
+  // what the reader chose not to send. The census line closes that gap.
+  const text = [
+    JSON.stringify({ __installedTotal: 900 }),
+    JSON.stringify({ id: "a", version: "1.0.0" }),
+    JSON.stringify({ id: "b", version: "1.0.0" }),
+  ].join("\n")
+  Model.parseInstalled(text)
+  assert.equal(Model.installedTruncated(), true)
+  assert.equal(Model.installedTotal(), 900)
+})
+
+test("a complete scan is NOT reported as truncated", () => {
+  // The flag has to mean something, so it must be false in the common case.
+  const text = [
+    JSON.stringify({ __installedTotal: 2 }),
+    JSON.stringify({ id: "a", version: "1.0.0" }),
+    JSON.stringify({ id: "b", version: "1.0.0" }),
+  ].join("\n")
+  const map = Model.parseInstalled(text)
+  assert.equal(Model.installedCount(map), 2)
+  assert.equal(Model.installedTruncated(), false)
+})
+
+test("duplicate directories for one plugin do not read as truncation", () => {
+  // Omarchy installs under the full id and a hand clone uses a short name, so
+  // the census counts DIRECTORIES while the map holds unique ids. That gap is
+  // normal and must not be mistaken for dropped data.
+  const text = [
+    JSON.stringify({ __installedTotal: 2 }),
+    JSON.stringify({ id: "same.plugin", version: "1.0.0", dir: "short" }),
+    JSON.stringify({ id: "same.plugin", version: "1.0.0", dir: "same.plugin" }),
+  ].join("\n")
+  const map = Model.parseInstalled(text)
+  assert.equal(Model.installedCount(map), 1, "ids collapse")
+  assert.equal(Model.installedTruncated(), false, "a collapsed duplicate is not a dropped read")
+})
+
+test("installedCensus tolerates a missing or malformed census line", () => {
+  assert.equal(Model.installedCensus(""), -1)
+  assert.equal(Model.installedCensus("no census here"), -1)
+  assert.equal(Model.installedCensus('{"__installedTotal":42}'), 42)
+})

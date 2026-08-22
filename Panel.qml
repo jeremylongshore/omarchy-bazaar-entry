@@ -48,6 +48,11 @@ Panel {
     return root.service ? root.service.rows : []
   }
 
+  readonly property bool installedPartial: {
+    root.revision
+    return root.service ? root.service.installedPartial === true : false
+  }
+
   readonly property var installedMap: {
     root.revision
     return root.service ? root.service.installed : ({})
@@ -392,7 +397,8 @@ Panel {
                   ? "Loading the marketplace"
                   : (Model.compact(root.visibleRows.length) + " of " +
                      Model.compact(root.allRows.length) + " plugins  ·  " +
-                     Model.compact(Model.installedCount(root.installedMap)) + " installed  ·  " +
+                     Model.compact(Model.installedCount(root.installedMap)) +
+                     (root.installedPartial ? "+ installed (partial)" : " installed") + "  ·  " +
                      Model.sortLabel(root.sortKey) +
                      (root.category ? "  ·  " + root.category.toUpperCase() : "") +
                      (root.kind ? "  ·  " + root.kind.toUpperCase() : "") +

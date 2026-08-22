@@ -65,6 +65,10 @@ Item {
   // install, and whenever the panel opens.
   property var installed: ({})
 
+  // Set when the scan hit its bound, so the hero can mark the count partial
+  // rather than stating a number it cannot stand behind.
+  property bool installedPartial: false
+
   property var rows: []
   property int newCount: 0
   property string lastError: ""
@@ -158,6 +162,10 @@ Item {
   function scanInstalled() {
     installedProc.command = ["bash", "-c",
       "cd \"$HOME/.config/omarchy/plugins\" 2>/dev/null || exit 0; "
+      // Census first: how many plugin directories EXIST, not how many are about
+      // to be read. Without it the parser cannot tell that the reader stopped
+      // early, and the hero would state a confidently wrong count.
+      + "printf '{\"__installedTotal\":%s}\\n' $(ls -1d */ 2>/dev/null | wc -l); "
       + "n=0; for d in */; do "
       + "[ -f \"$d/manifest.json\" ] || continue; "
       + "n=$((n+1)); [ $n -gt " + Model.MAX_INSTALLED + " ] && break; "
@@ -342,6 +350,7 @@ Item {
       waitForEnd: true
       onStreamFinished: {
         root.installed = Model.parseInstalled(text)
+        root.installedPartial = Model.installedTruncated()
         root.storeChanged()
       }
     }

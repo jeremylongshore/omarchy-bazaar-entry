@@ -18,7 +18,7 @@ Nothing yet.
 
 - Bazaar, the Omarchy plugin marketplace as a bar widget
 - Open the marketplace listing, not just the repository
-- Install plugins, know what is already installed, and filter by kind
+- Install plugins, know what is installed, and filter by kind
 
 ### Internal
 

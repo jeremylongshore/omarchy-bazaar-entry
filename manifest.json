@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "id": "io.github.jeremylongshore.bazaar",
+  "name": "Bazaar",
+  "version": "1.0.0",
+  "author": "Jeremy Longshore",
+  "license": "MIT",
+  "description": "Search the Omarchy plugin marketplace from your bar and copy an install command without opening a browser. Filter by category and tag, sort by hearts, installs, views or what is actually trending right now, and see at a glance what has been listed since you last looked.",
+  "kinds": [
+    "service",
+    "bar-widget"
+  ],
+  "entryPoints": {
+    "service": "Service.qml",
+    "barWidget": "BarWidget.qml"
+  },
+  "barWidget": {
+    "displayName": "Bazaar",
+    "description": "The marketplace, in your bar. Type to search every listed plugin, filter by category or tag, and press enter to copy its install command. The pill counts what has been listed since you last looked and collapses to nothing when you are caught up. Ranks by trending, which is views per day since listing, not by a cumulative counter that only ever rewards age.",
+    "category": "Productivity",
+    "aliases": [
+      "bazaar",
+      "plugins",
+      "marketplace",
+      "plugin-search",
+      "omarchy-plugins"
+    ],
+    "allowMultiple": false,
+    "defaultSection": "right",
+    "defaults": {
+      "notifications": "Off",
+      "defaultSort": "Trending",
+      "newBadge": "On",
+      "showStalled": "On"
+    },
+    "schema": [
+      {
+        "key": "notifications",
+        "type": "enum",
+        "label": "Desktop notifications",
+        "options": [
+          "On",
+          "Off"
+        ],
+        "defaultValue": "Off",
+        "description": "Notify when new plugins are listed. Off by default, because a marketplace is something you browse when you choose to, not something that should interrupt you."
+      },
+      {
+        "key": "defaultSort",
+        "type": "enum",
+        "label": "Default sort",
+        "options": [
+          "Trending",
+          "Hearts",
+          "Installs",
+          "Views",
+          "Newest",
+          "Name"
+        ],
+        "defaultValue": "Trending",
+        "description": "Trending is views per day since a plugin was listed. Hearts, installs and views are cumulative totals, so they rank long-listed plugins above genuinely popular new ones."
+      },
+      {
+        "key": "newBadge",
+        "type": "enum",
+        "label": "Count new listings on the pill",
+        "options": [
+          "On",
+          "Off"
+        ],
+        "defaultValue": "On",
+        "description": "Show how many plugins have been listed since you last opened the panel. Turn off to keep the pill as a plain icon."
+      },
+      {
+        "key": "showStalled",
+        "type": "enum",
+        "label": "Flag listings nobody can install",
+        "options": [
+          "On",
+          "Off"
+        ],
+        "defaultValue": "On",
+        "description": "Marks a plugin that has real traffic but zero recorded installs, which usually means its install command is missing or broken. Useful before you spend time on a listing that cannot be taken."
+      }
+    ]
+  }
+}

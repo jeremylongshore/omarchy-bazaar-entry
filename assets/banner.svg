@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 340" width="1200" height="340" role="img" aria-label="Bazaar: the plugin marketplace, in your bar. A search field over ranked results, each with a trending rate.">
+  <rect width="1200" height="340" fill="#11151a"/>
+
+  <!-- Left column: identity. Deliberately narrow so the right side can show the
+       thing itself rather than describing it. -->
+  <text x="64" y="118" font-family="'JetBrains Mono','Cascadia Mono',monospace" font-size="46" font-weight="700" letter-spacing="4" fill="#e6e9ec">BAZAAR</text>
+  <text x="66" y="152" font-family="'JetBrains Mono','Cascadia Mono',monospace" font-size="17" letter-spacing="1" fill="#8f9aa6">The plugin marketplace, in your bar.</text>
+  <text x="66" y="196" font-family="'JetBrains Mono','Cascadia Mono',monospace" font-size="13" letter-spacing="1" fill="#5d6874">search · filter · sort by what is</text>
+  <text x="66" y="216" font-family="'JetBrains Mono','Cascadia Mono',monospace" font-size="13" letter-spacing="1" fill="#5d6874">actually trending · copy the</text>
+  <text x="66" y="236" font-family="'JetBrains Mono','Cascadia Mono',monospace" font-size="13" letter-spacing="1" fill="#5d6874">install command · never leave</text>
+  <text x="66" y="256" font-family="'JetBrains Mono','Cascadia Mono',monospace" font-size="13" letter-spacing="1" fill="#5d6874">the terminal</text>
+
+  <!-- Right: the panel itself, drawn rather than described. -->
+  <g transform="translate(520,44)">
+    <rect x="0" y="0" width="616" height="252" rx="4" fill="#161b21" stroke="#2a323b"/>
+
+    <!-- search field -->
+    <rect x="18" y="18" width="580" height="30" rx="4" fill="#11161b" stroke="#39424d"/>
+    <text x="32" y="38" font-family="'JetBrains Mono','Cascadia Mono',monospace" font-size="13" fill="#5d6874">Press / to search by name, tag or author</text>
+
+    <!-- category pills -->
+    <g font-family="'JetBrains Mono','Cascadia Mono',monospace" font-size="10" letter-spacing="1">
+      <rect x="18" y="60" width="42" height="18" rx="9" fill="#2b333c" stroke="#465060"/>
+      <text x="30" y="73" fill="#d6dbe1">ALL</text>
+      <rect x="66" y="60" width="74" height="18" rx="9" fill="#1a2027" stroke="#333c46"/>
+      <text x="78" y="73" fill="#7d8894">WIDGETS</text>
+      <rect x="146" y="60" width="104" height="18" rx="9" fill="#1a2027" stroke="#333c46"/>
+      <text x="158" y="73" fill="#7d8894">PRODUCTIVITY</text>
+      <rect x="256" y="60" width="66" height="18" rx="9" fill="#1a2027" stroke="#333c46"/>
+      <text x="268" y="73" fill="#7d8894">SYSTEM</text>
+      <rect x="328" y="60" width="78" height="18" rx="9" fill="#1a2027" stroke="#333c46"/>
+      <text x="340" y="73" fill="#7d8894">HARDWARE</text>
+    </g>
+
+    <!-- result rows: accent stripe, name, one line of description, the rate -->
+    <g font-family="'JetBrains Mono','Cascadia Mono',monospace">
+      <rect x="18" y="92" width="580" height="34" rx="3" fill="#1e242b"/>
+      <rect x="22" y="97" width="3" height="24" rx="1.5" fill="#7fb2d9"/>
+      <text x="38" y="108" font-size="13" font-weight="700" fill="#e6e9ec">Timezones</text>
+      <text x="38" y="122" font-size="11" fill="#78838f">World clock bar pill with a worldtimebuddy style hour grid</text>
+      <text x="580" y="108" font-size="11" text-anchor="end" fill="#b9c2cb">29 ♥   81 inst</text>
+      <text x="580" y="121" font-size="11" text-anchor="end" fill="#6d7783">653/day</text>
+
+      <rect x="22" y="139" width="3" height="24" rx="1.5" fill="#d9a05b"/>
+      <text x="38" y="150" font-size="13" fill="#d6dbe1">Notification Center</text>
+      <text x="38" y="164" font-size="11" fill="#78838f">Every notification you were sent, kept, and readable again</text>
+      <text x="580" y="150" font-size="11" text-anchor="end" fill="#b9c2cb">21 ♥   173 inst</text>
+      <text x="580" y="163" font-size="11" text-anchor="end" fill="#6d7783">494/day</text>
+
+      <rect x="22" y="181" width="3" height="24" rx="1.5" fill="#a98ad4"/>
+      <text x="38" y="192" font-size="13" fill="#d6dbe1">Omarchy Spotify</text>
+      <text x="38" y="206" font-size="11" fill="#c47b7b">NO INSTALL CMD  ·  81 hearts, nobody can take it</text>
+      <text x="580" y="192" font-size="11" text-anchor="end" fill="#b9c2cb">81 ♥   0 inst</text>
+      <text x="580" y="205" font-size="11" text-anchor="end" fill="#6d7783">310/day</text>
+
+      <rect x="22" y="223" width="3" height="16" rx="1.5" fill="#7fc4a8"/>
+      <text x="38" y="234" font-size="13" fill="#98a3ae">Lock Screen Explorer</text>
+      <text x="580" y="234" font-size="11" text-anchor="end" fill="#6d7783">307/day</text>
+    </g>
+
+  </g>
+</svg>

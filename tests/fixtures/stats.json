@@ -1,0 +1,80 @@
+{
+ "schemaVersion": 1,
+ "plugins": {
+  "agx.screen-time": {
+   "views": 923,
+   "copies": 380,
+   "hearts": 76
+  },
+  "cliamp": {
+   "views": 663,
+   "copies": 0,
+   "hearts": 5
+  },
+  "crmne.hyprmoncfg": {
+   "views": 2197,
+   "copies": 707,
+   "hearts": 84
+  },
+  "dizziee.cline-model-usage": {
+   "views": 5,
+   "copies": 0,
+   "hearts": 1
+  },
+  "dizziee.opencode-model-usage": {
+   "views": 74,
+   "copies": 22,
+   "hearts": 2
+  },
+  "dizziee.power-profiles": {
+   "views": 33,
+   "copies": 13,
+   "hearts": 0
+  },
+  "dizziee.system-updates": {
+   "views": 231,
+   "copies": 80,
+   "hearts": 7
+  },
+  "io.github.sspaeti.timezones": {
+   "views": 545,
+   "copies": 81,
+   "hearts": 29
+  },
+  "lacuna.shell-suite": {
+   "views": 619,
+   "copies": 0,
+   "hearts": 5
+  },
+  "omarchy-overview": {
+   "views": 332,
+   "copies": 69,
+   "hearts": 6
+  },
+  "omni": {
+   "views": 471,
+   "copies": 0,
+   "hearts": 1
+  },
+  "quickapps-hud": {
+   "views": 520,
+   "copies": 0,
+   "hearts": 2
+  },
+  "quickshell.spotify": {
+   "views": 2733,
+   "copies": 0,
+   "hearts": 81
+  },
+  "shavanced.notification-center": {
+   "views": 1539,
+   "copies": 620,
+   "hearts": 39
+  },
+  "vitals": {
+   "views": 439,
+   "copies": 416,
+   "hearts": 29
+  }
+ }
+}

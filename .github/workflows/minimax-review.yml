@@ -38,9 +38,10 @@ permissions:
   contents: read
   pull-requests: write
 
-concurrency:
-  group: 'minimax-review-${{ github.event.pull_request.number }}'
-  cancel-in-progress: true
+# Concurrency is set PER JOB, not workflow-wide. A shared group with
+# cancel-in-progress cancels all four lanes together on a mid-review push, and
+# combined with sticky-comment writes that can leave a partial set of reviews
+# looking like a complete one. Each lane below carries its own key.
 
 # The vendored gate lane is excluded: it is synced from canonical by
 # scripts/sync-gate-lane.sh and hand-edits to it are refused by the manifest, so
@@ -49,7 +50,45 @@ env:
   EXCLUDES: '**/node_modules/**,scripts/gates/**,.rig-proof.json,tests/fixtures/**,preview.png,render.png,assets/*.png'
 
 jobs:
+  # A skipped job renders GREEN. So if the kill switch is off, or the secret is
+  # missing, four grey ticks look exactly like four passing reviews and a
+  # reviewer concludes the PR was reviewed when nothing ran.
+  #
+  # That is the same defect class this plugin family has been digging out all
+  # week: gates c32 and c33 gate_skip off-rig and the runner counted SKIP as
+  # PASS, so the submission lane printed "verdict PASS, 0 BLOCK" for plugins
+  # that had never run on Omarchy. Caught here by this workflow's own claims
+  # lane, reviewing the pull request that introduced it.
+  #
+  # This job always runs and says out loud whether the lanes are live.
+  status:
+    name: Review lanes status
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Report whether the review lanes are active
+        env:
+          ENABLED: ${{ vars.ENABLE_MINIMAX_REVIEW }}
+          HAS_KEY: ${{ secrets.MINIMAX_API_KEY != '' }}
+          SAME_REPO: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+        run: |
+          echo "ENABLE_MINIMAX_REVIEW=${ENABLED:-<unset>}"
+          echo "MINIMAX_API_KEY present=${HAS_KEY}"
+          echo "same-repo PR=${SAME_REPO}"
+          if [ "${SAME_REPO}" != "true" ]; then
+            echo "::notice::Fork PR. Review lanes are skipped by design; a fork never receives the key."
+            exit 0
+          fi
+          if [ "${ENABLED}" != "true" ] || [ "${HAS_KEY}" != "true" ]; then
+            echo "::warning::MiniMax review lanes did NOT run. Green ticks on this PR do not mean it was reviewed."
+            exit 0
+          fi
+          echo "Review lanes active: security, runtime, design, claims."
+
   security:
+    concurrency:
+      group: 'minimax-security-${{ github.event.pull_request.number }}'
+      cancel-in-progress: true
     name: Security review
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -120,6 +159,9 @@ jobs:
             are advisory only and never block a merge.' }}
 
   runtime:
+    concurrency:
+      group: 'minimax-runtime-${{ github.event.pull_request.number }}'
+      cancel-in-progress: true
     name: Runtime review
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -186,6 +228,9 @@ jobs:
             lgtm if it is clean, and never block a merge.' }}
 
   design:
+    concurrency:
+      group: 'minimax-design-${{ github.event.pull_request.number }}'
+      cancel-in-progress: true
     name: Design review
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -239,6 +284,9 @@ jobs:
             presented, and never block a merge.' }}
 
   claims:
+    concurrency:
+      group: 'minimax-claims-${{ github.event.pull_request.number }}'
+      cancel-in-progress: true
     name: Claims audit
     runs-on: ubuntu-latest
     timeout-minutes: 10

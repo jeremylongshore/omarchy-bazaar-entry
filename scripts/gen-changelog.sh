@@ -28,7 +28,10 @@ command -v jq >/dev/null 2>&1 || { echo "gen-changelog: jq is required" >&2; exi
 [[ -n "$NAME"    ]] || NAME="$(jq -r '.name // "this plugin"' "$ROOT/manifest.json")"
 [[ -n "$VERSION" ]] || VERSION="$(jq -r '.version // "1.0.0"' "$ROOT/manifest.json")"
 
-SEC_RE='secur|token|credential|argv|ssrf|inject|unbounded|bound |leak|proc/|memory'
+# 'bound ' with a trailing space matched "bound the spool read" but NOT
+# "bounded read", so a genuine security fix could be filed under Fixed. Caught by
+# the claims review lane. 'bound' unanchored covers bound, bounded and unbounded.
+SEC_RE='secur|token|credential|argv|ssrf|inject|bound|leak|proc/|memory|exhaust'
 
 added=""; changed=""; fixed=""; security=""; internal=""
 last_date=""
@@ -102,4 +105,17 @@ OUT="$ROOT/CHANGELOG.md"
   fi
 } > "$OUT"
 
-echo "gen-changelog: wrote $(basename "$ROOT")/CHANGELOG.md ($(/usr/bin/wc -l < "$OUT") lines)"
+# Report what was DROPPED. The parser silently skips any subject that is not a
+# conventional commit, so a repo with a few stray subjects gets a changelog that
+# looks complete and is not. Same defect class as a bound applied without saying
+# so: a silent gap reads as an absence of gaps.
+TOTAL=$(/usr/bin/git -C "$ROOT" log --pretty=%s | /usr/bin/wc -l)
+KEPT=$(/usr/bin/grep -c '^- ' "$OUT" || true)
+SKIPPED=$((TOTAL - KEPT))
+echo "gen-changelog: wrote $(basename "$ROOT")/CHANGELOG.md ($(/usr/bin/wc -l < "$OUT") lines, $KEPT entries)"
+if [[ "$SKIPPED" -gt 0 ]]; then
+  echo "gen-changelog: $SKIPPED of $TOTAL commits were not conventional and are absent from the changelog" >&2
+  /usr/bin/git -C "$ROOT" log --pretty=%s \
+    | /usr/bin/grep -vE '^[a-z]+(\([^)]*\))?!?: ' \
+    | /usr/bin/head -5 | /usr/bin/sed 's/^/  skipped: /' >&2
+fi

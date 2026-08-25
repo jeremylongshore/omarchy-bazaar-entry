@@ -17,6 +17,8 @@ matches ranked, press enter, and the install command is on your clipboard. The
 pill counts what has been listed since you last looked and shows nothing when
 you are caught up.
 
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/U5S225PTME)
+
 ## Trending means views per day, not a running total
 
 Hearts, installs and views are cumulative counters. Ranking on them returns

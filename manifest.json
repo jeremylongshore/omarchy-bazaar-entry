@@ -5,7 +5,7 @@
   "version": "1.0.0",
   "author": "Jeremy Longshore",
   "license": "MIT",
-  "description": "Search the Omarchy plugin marketplace from your bar and copy an install command without opening a browser. Filter by category and tag, sort by hearts, installs, views or what is actually trending right now, and see at a glance what has been listed since you last looked.",
+  "description": "Browse the Omarchy plugin marketplace without leaving your bar. Bazaar searches names, descriptions, tags and authors; filters by category or kind; ranks by real views-per-day trending; and marks listings with traffic but no recorded installs. Save a private local shortlist, see what appeared since your last visit, open a listing or repository, copy a validated command, or install a plugin. Public catalog data refreshes every six hours and stats every 30 minutes; no account or user data is sent.",
   "kinds": [
     "service",
     "bar-widget"
@@ -16,7 +16,7 @@
   },
   "barWidget": {
     "displayName": "Bazaar",
-    "description": "The marketplace, in your bar. Type to search every listed plugin, filter by category or tag, and press enter to copy its install command. The pill counts what has been listed since you last looked and collapses to nothing when you are caught up. Ranks by trending, which is views per day since listing, not by a cumulative counter that only ever rewards age.",
+    "description": "Browse the Omarchy plugin marketplace without leaving your bar. Bazaar searches names, descriptions, tags and authors; filters by category or kind; ranks by real views-per-day trending; and marks listings with traffic but no recorded installs. Save a private local shortlist, see what appeared since your last visit, open a listing or repository, copy a validated command, or install a plugin. Public catalog data refreshes every six hours and stats every 30 minutes; no account or user data is sent.",
     "category": "Productivity",
     "aliases": [
       "bazaar",

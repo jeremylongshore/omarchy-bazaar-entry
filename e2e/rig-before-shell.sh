@@ -15,9 +15,11 @@ jq -n --argjson now "$NOW_MS" \
 jq -n '{saved:{"io.github.patel.radio-atlas":true,"io.github.jeremylongshore.quiet-queue":true}}' \
   > "$STATE_DIR/saved.json"
 
-jq -n '{id:"io.github.jeremylongshore.crew-chief",version:"1.0.0"}' \
+jq '.id="io.github.jeremylongshore.crew-chief" | .name="Crew Chief" | .version="1.0.0"' \
+  "$PLUGIN_DIR/manifest.json" \
   > "$PLUGINS_DIR/crew-chief/manifest.json"
-jq -n '{id:"io.github.jeremylongshore.flow-boundary",version:"0.1.0"}' \
+jq '.id="io.github.jeremylongshore.flow-boundary" | .name="Flow Boundary" | .version="0.1.0"' \
+  "$PLUGIN_DIR/manifest.json" \
   > "$PLUGINS_DIR/flow-boundary/manifest.json"
 
 jq -e '.plugins | length == 8' "$STATE_DIR/catalog.json" >/dev/null

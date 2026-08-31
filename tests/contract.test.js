@@ -71,6 +71,8 @@ test("deterministic marketplace render tells Bazaar's complete product story", (
   assert.equal(settings.settings.defaultSort, "Trending")
   assert.match(hook, /catalogFetchedAt/)
   assert.match(hook, /lastSeenAt/)
+  assert.equal((hook.match(/\$PLUGIN_DIR\/manifest\.json/g) || []).length, 2,
+    "installed-plugin fixtures must inherit the validated current manifest schema")
   assert.doesNotMatch(hook, /curl|wget|Authorization|Bearer/)
 })
 

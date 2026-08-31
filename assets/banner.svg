@@ -10,7 +10,9 @@
   <text x="66" y="236" font-family="'JetBrains Mono','Cascadia Mono',monospace" font-size="13" letter-spacing="1" fill="#5d6874">install command · never leave</text>
   <text x="66" y="256" font-family="'JetBrains Mono','Cascadia Mono',monospace" font-size="13" letter-spacing="1" fill="#5d6874">the terminal</text>
 
-  <!-- Right: the panel itself, drawn rather than described. -->
+  <!-- Right: the panel itself, drawn rather than described. The rising route
+       is Bazaar's signature: one glance connects discovery, momentum, and the
+       saved shortlist instead of reducing the product to another initials tile. -->
   <g transform="translate(520,44)">
     <rect x="0" y="0" width="616" height="252" rx="4" fill="#161b21" stroke="#2a323b"/>
 
@@ -57,6 +59,15 @@
       <text x="38" y="234" font-size="13" fill="#98a3ae">Lock Screen Explorer</text>
       <text x="580" y="234" font-size="11" text-anchor="end" fill="#6d7783">307/day</text>
     </g>
+
+    <!-- A marketplace trail threaded through the ranked results. It reads as
+         both a search route and a compact trend line, specific to Bazaar's job. -->
+    <path d="M 438 231 C 456 218, 456 208, 470 199 S 490 181, 478 166 S 462 145, 482 125 S 515 111, 526 96"
+          fill="none" stroke="#e4b85b" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="2 7" opacity="0.9"/>
+    <circle cx="438" cy="231" r="4" fill="#7fc4a8" stroke="#161b21" stroke-width="2"/>
+    <circle cx="482" cy="125" r="4" fill="#d9a05b" stroke="#161b21" stroke-width="2"/>
+    <circle cx="526" cy="96" r="5" fill="#e4b85b" stroke="#161b21" stroke-width="2"/>
+    <path d="M 520 91 L 529 96 L 520 101" fill="none" stroke="#161b21" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
 
   </g>
 </svg>

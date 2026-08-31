@@ -19,6 +19,16 @@ const NOW = Date.parse("2026-08-22T06:00:00Z")
 const rows = () =>
   Model.join(Model.parseCatalog(CATALOG), Model.parseStats(STATS), NOW)
 
+test("marketplace copy uses the full allowance for one complete product story", () => {
+  const manifest = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "manifest.json"), "utf8"))
+  assert.equal(manifest.description.length, 500)
+  assert.equal(manifest.barWidget.description.length, 500)
+  assert.equal(manifest.barWidget.description, manifest.description)
+  assert.match(manifest.description, /views-per-day trending/)
+  assert.match(manifest.description, /private local shortlist/)
+  assert.match(manifest.description, /no account or user data is sent/)
+})
+
 // --------------------------------------------------------------- http parsing
 
 test("parseHttpResponse splits headers, body and status from one stdout", () => {
@@ -93,6 +103,24 @@ test("stalled comes from installAvailable, never inferred from traffic", () => {
 test("parseCatalog lowercases tags so filtering is case-insensitive", () => {
   for (const p of Model.parseCatalog(CATALOG)) {
     for (const t of p.tags) assert.equal(t, t.toLowerCase())
+  }
+})
+
+test("catalog fallbacks turn incomplete listings into readable rows", () => {
+  const raw = JSON.stringify({ plugins: [
+    { id: "io.github.alice.market-map", repo: "https://github.com/alice/market-map" }
+  ] })
+  const item = Model.parseCatalog(raw)[0]
+  assert.equal(item.name, "Market Map")
+  assert.equal(item.author, "alice")
+  assert.equal(Model.prettyName("io.github.alice.two_words"), "Two Words")
+  assert.equal(Model.authorFromRepo("https://gitlab.com/alice/project"), "")
+})
+
+test("parseStats accepts the marketplace envelope and rejects other shapes", () => {
+  assert.deepEqual(Model.parseStats('{"plugins":{"x":{"views":3}}}'), { x: { views: 3 } })
+  for (const bad of ["", "{", "null", "[]", '{"plugins":3}']) {
+    assert.deepEqual(Model.parseStats(bad), {})
   }
 })
 
@@ -222,6 +250,27 @@ test("newest sorts by listing date, most recent first", () => {
   }
 })
 
+test("sort labels and alphabetical ordering match the panel vocabulary", () => {
+  const labels = {
+    velocity: "TRENDING", hearts: "HEARTS", copies: "INSTALLS",
+    views: "VIEWS", stars: "GITHUB STARS", newest: "NEWEST", name: "NAME"
+  }
+  for (const [key, value] of Object.entries(labels)) assert.equal(Model.sortLabel(key), value)
+  assert.equal(Model.sortLabel("unknown"), "NAME")
+  assert.deepEqual(
+    Model.sort([{ name: "Zulu" }, { name: "Alpha" }], "name").map((row) => row.name),
+    ["Alpha", "Zulu"])
+})
+
+test("category rankings put the most useful filters first", () => {
+  const sample = [
+    { category: "System" }, { category: "Productivity" },
+    { category: "System" }, { category: "" }, { category: "Appearance" }
+  ]
+  assert.deepEqual(Model.categoriesByCount(sample), ["System", "Appearance", "Productivity"])
+  assert.deepEqual(Model.categoriesByCount([]), [])
+})
+
 // ------------------------------------------------------------------ new badge
 
 test("markNew counts listings newer than the watermark", () => {
@@ -252,6 +301,14 @@ test("parseSaved survives junk and always yields the default list", () => {
     const s = Model.parseSaved(bad)
     assert.ok(s.saved && typeof s.saved === "object")
   }
+})
+
+test("saved lists count truthy ids and create named lists on demand", () => {
+  const parsed = Model.parseSaved('{"later":{"a":true,"b":false},"broken":null}')
+  assert.equal(Model.savedCount(parsed, "later"), 1)
+  assert.equal(Model.savedCount(parsed, "missing"), 0)
+  const named = Model.toggleSaved(parsed, "work-box", "plugin.id")
+  assert.equal(Model.savedCount(named, "work-box"), 1)
 })
 
 test("savedOnly filters to the saved set", () => {
@@ -296,7 +353,15 @@ test("ageText reads in human units", () => {
   assert.equal(Model.ageText(new Date(NOW).toISOString(), NOW), "today")
   assert.equal(Model.ageText(new Date(NOW - 86400000).toISOString(), NOW), "1d")
   assert.equal(Model.ageText(new Date(NOW - 5 * 86400000).toISOString(), NOW), "5d")
+  assert.equal(Model.ageText(new Date(NOW - 65 * 86400000).toISOString(), NOW), "2mo")
   assert.equal(Model.ageText("nonsense", NOW), "")
+})
+
+test("velocityText preserves useful precision at each display scale", () => {
+  assert.equal(Model.velocityText(123.6), "124/day")
+  assert.equal(Model.velocityText(14.8), "15/day")
+  assert.equal(Model.velocityText(2.34), "2.3/day")
+  assert.equal(Model.velocityText(null), "0.0/day")
 })
 
 test("listingUrl points at the marketplace page and refuses a hostile id", () => {

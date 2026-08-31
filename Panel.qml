@@ -447,6 +447,8 @@ Panel {
                 font.pixelSize: Style.font.body
                 selectByMouse: true
                 clip: true
+                Accessible.role: Accessible.EditableText
+                Accessible.name: "Search Bazaar plugins"
                 // Escape hands focus back to the key catcher so the panel's
                 // single-letter keys work again without closing the panel.
                 Keys.onEscapePressed: keyCatcher.forceActiveFocus()

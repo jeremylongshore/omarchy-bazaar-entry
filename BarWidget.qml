@@ -108,6 +108,8 @@ BarWidget {
     // so the colour means "there is something new", not "this plugin exists".
     active: panelLoader.item ? panelLoader.item.isAlert === true : false
     tooltipText: panelLoader.item ? panelLoader.item.tooltip : ""
+    Accessible.role: Accessible.Button
+    Accessible.name: root.opened ? "Close Bazaar" : "Open Bazaar"
 
     onPressed: function (b) {
       if (b === Qt.MiddleButton) root.refresh()

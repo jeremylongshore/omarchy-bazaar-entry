@@ -1,0 +1,8 @@
+{
+  "settings": {
+    "notifications": "Off",
+    "defaultSort": "Trending",
+    "newBadge": "On",
+    "showStalled": "On"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "plugins": {
+    "io.github.patel.radio-atlas": { "views": 1840, "copies": 241, "hearts": 133 },
+    "io.github.jeremylongshore.crew-chief": { "views": 1320, "copies": 118, "hearts": 87 },
+    "io.github.stellascode.omagotchi": { "views": 1510, "copies": 209, "hearts": 121 },
+    "io.github.gm.airpods": { "views": 1210, "copies": 176, "hearts": 94 },
+    "io.github.jeremylongshore.flow-boundary": { "views": 690, "copies": 52, "hearts": 41 },
+    "io.github.jeremylongshore.quiet-queue": { "views": 420, "copies": 24, "hearts": 29 },
+    "io.github.jeremylongshore.workspace-storyboard": { "views": 510, "copies": 31, "hearts": 34 },
+    "io.github.demo.signal-garden": { "views": 380, "copies": 0, "hearts": 17 }
+  }
+}

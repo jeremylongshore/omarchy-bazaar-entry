@@ -1,3 +1,5 @@
 node_modules/
-*.tgz
-render-check.png
+coverage/
+reports/
+.stryker-tmp/
+.rig-proof.json

@@ -24,9 +24,11 @@ test("marketplace copy uses the full allowance for one complete product story", 
   assert.equal(manifest.description.length, 500)
   assert.equal(manifest.barWidget.description.length, 500)
   assert.equal(manifest.barWidget.description, manifest.description)
-  assert.match(manifest.description, /views-per-day trending/)
-  assert.match(manifest.description, /private local shortlist/)
-  assert.match(manifest.description, /no account or user data is sent/)
+  for (const claim of [
+    "views per day since listing", "no install command", "private local shortlist",
+    "listings added since your last visit", "safe CLI command", "validated GitHub URL",
+    "every six hours", "every 30 minutes", "No account data is ever sent"
+  ]) assert.match(manifest.description, new RegExp(claim))
 })
 
 // --------------------------------------------------------------- http parsing

@@ -5,7 +5,7 @@
   "version": "1.0.0",
   "author": "Jeremy Longshore",
   "license": "MIT",
-  "description": "Browse the Omarchy plugin marketplace without leaving your bar. Bazaar searches names, descriptions, tags and authors; filters by category or kind; ranks by real views-per-day trending; and marks listings with traffic but no recorded installs. Save a private local shortlist, see what appeared since your last visit, open a listing or repository, copy a validated command, or install a plugin. Public catalog data refreshes every six hours and stats every 30 minutes; no account or user data is sent.",
+  "description": "Bazaar brings the Omarchy plugin marketplace to your bar. Search names, descriptions, tags, and authors; filter by category or kind; rank trending by views per day since listing; and flag listings whose marketplace record has no install command. Save a private local shortlist, see listings added since your last visit, open a listing or repo, copy a safe CLI command, or install from a validated GitHub URL. Catalog refreshes every six hours and stats every 30 minutes. No account data is ever sent.",
   "kinds": [
     "service",
     "bar-widget"
@@ -16,7 +16,7 @@
   },
   "barWidget": {
     "displayName": "Bazaar",
-    "description": "Browse the Omarchy plugin marketplace without leaving your bar. Bazaar searches names, descriptions, tags and authors; filters by category or kind; ranks by real views-per-day trending; and marks listings with traffic but no recorded installs. Save a private local shortlist, see what appeared since your last visit, open a listing or repository, copy a validated command, or install a plugin. Public catalog data refreshes every six hours and stats every 30 minutes; no account or user data is sent.",
+    "description": "Bazaar brings the Omarchy plugin marketplace to your bar. Search names, descriptions, tags, and authors; filter by category or kind; rank trending by views per day since listing; and flag listings whose marketplace record has no install command. Save a private local shortlist, see listings added since your last visit, open a listing or repo, copy a safe CLI command, or install from a validated GitHub URL. Catalog refreshes every six hours and stats every 30 minutes. No account data is ever sent.",
     "category": "Productivity",
     "aliases": [
       "bazaar",
@@ -74,13 +74,13 @@
       {
         "key": "showStalled",
         "type": "enum",
-        "label": "Flag listings nobody can install",
+        "label": "Flag listings without an install command",
         "options": [
           "On",
           "Off"
         ],
         "defaultValue": "On",
-        "description": "Marks a plugin that has real traffic but zero recorded installs, which usually means its install command is missing or broken. Useful before you spend time on a listing that cannot be taken."
+        "description": "Marks a listing when the marketplace explicitly says no install command is available, so you know it requires manual setup before opening it."
       }
     ]
   }

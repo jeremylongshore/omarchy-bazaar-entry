@@ -39,10 +39,9 @@ flatten everything else into an invisible sliver.
 The marketplace publishes, for every listing, whether an install command exists.
 Bazaar reads that flag and marks the ones that have none.
 
-This is not a rare edge case. At the time of writing, the single most viewed
-plugin on the marketplace has thousands of views, dozens of hearts, and zero
-recorded installs, because there is nothing to copy. Bazaar shows you that
-before you spend time on it rather than after.
+This is not a rare edge case. Some popular listings require manual setup because
+the marketplace has no install command for them. Bazaar shows you that before
+you spend time on a listing rather than after.
 
 ## A shortlist the website cannot give you
 

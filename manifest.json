@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "io.github.jeremylongshore.bazaar",
   "name": "Bazaar",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": "Jeremy Longshore",
   "license": "MIT",
   "description": "Bazaar brings the Omarchy plugin marketplace to your bar. Search names, descriptions, tags, and authors; filter by category or kind; rank trending by views per day since listing; and flag listings whose marketplace record has no install command. Save a private local shortlist, see listings added since your last visit, open a listing or repo, copy a safe CLI command, or install from a validated GitHub URL. Catalog refreshes every six hours and stats every 30 minutes. No account data is ever sent.",

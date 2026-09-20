@@ -369,7 +369,7 @@ test("velocityText preserves useful precision at each display scale", () => {
 test("listingUrl points at the marketplace page and refuses a hostile id", () => {
   assert.equal(
     Model.listingUrl("io.github.jeremylongshore.pit-wall"),
-    "https://omarchyplugins.com/plugin.html?id=io.github.jeremylongshore.pit-wall")
+    "https://plugins.omarchy.org/plugin.html?id=io.github.jeremylongshore.pit-wall")
   // Ids come from a third-party catalog and end up in a URL handed to xdg-open,
   // so anything that is not the shape the marketplace issues is refused rather
   // than encoded and hoped for.

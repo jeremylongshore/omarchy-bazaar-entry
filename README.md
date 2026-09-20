@@ -108,7 +108,7 @@ amounts:
 
 | Source | Size | Cadence |
 | --- | --- | --- |
-| `omarchyplugins.com/catalog.json` | 245 KB gzipped | every 6 hours, conditionally |
+| `plugins.omarchy.org/catalog.json` | 245 KB gzipped | every 6 hours, conditionally |
 | `api.omarchyplugins.com/v1/stats` | 15 KB gzipped | every 30 minutes |
 
 The catalog carries an `ETag`, so an unchanged catalog answers `304` with no

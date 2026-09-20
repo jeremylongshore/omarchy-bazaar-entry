@@ -614,7 +614,7 @@ function safeInstallCommand(cmd) {
 function listingUrl(id) {
   var s = String(id || "").trim()
   if (!/^[A-Za-z0-9][A-Za-z0-9._-]{0,120}$/.test(s)) return ""
-  return "https://omarchyplugins.com/plugin.html?id=" + encodeURIComponent(s)
+  return "https://plugins.omarchy.org/plugin.html?id=" + encodeURIComponent(s)
 }
 
 function repoUrl(repo) {

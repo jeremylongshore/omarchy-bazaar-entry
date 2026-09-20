@@ -170,7 +170,7 @@ test("the exported Bazaar model has a broad deterministic mutation signature", (
   }
 
   const signature = crypto.createHash("sha256").update(JSON.stringify(cases)).digest("hex")
-  assert.equal(signature, "7e1a02d0a21462b71ad721a1dd40af69b554c039d187a3ca52740c89aac5f111")
+  assert.equal(signature, "2d719fd4549031621e28cb7768128ee5ebef3f51dd3c13f5e1d7c2d37ca58549")
 })
 
 test("security boundaries remain observable at their exact edges", () => {
@@ -180,7 +180,7 @@ test("security boundaries remain observable at their exact edges", () => {
   assert.equal(Model.safeInstallCommand("x".repeat(401)), "")
   assert.equal(Model.repoUrl("xhttps://github.com/a/b"), "")
   assert.equal(Model.repoUrl("https://github.com/a/b?next=https://evil.example"), "")
-  assert.equal(Model.listingUrl(" valid.id "), "https://omarchyplugins.com/plugin.html?id=valid.id")
+  assert.equal(Model.listingUrl(" valid.id "), "https://plugins.omarchy.org/plugin.html?id=valid.id")
 
   const explicit = Model.parseCatalog(JSON.stringify({ plugins: [
     plugin({ installAvailable: false, verificationStatus: "verified" }),

@@ -38,8 +38,12 @@ Item {
   readonly property string internalPath: stateDir + "/internal.json"
   readonly property string savedPath: stateDir + "/saved.json"
 
+  // The marketplace moved to plugins.omarchy.org. The old host answers the catalog
+  // with a 301, and fetchArgs() refuses redirects on purpose, so the stale
+  // constant left every fresh install on "Loading the marketplace" (issue #8,
+  // diagnosed by @rdannenbring). The stats API still answers 200 on its own host.
   readonly property string catalogUrl:
-    "https://omarchyplugins.com/catalog.json"
+    "https://plugins.omarchy.org/catalog.json"
   readonly property string statsUrl: "https://api.omarchyplugins.com/v1/stats"
 
   readonly property int pollIntervalSec: 1800

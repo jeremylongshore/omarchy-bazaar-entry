@@ -78,7 +78,11 @@ test("deterministic marketplace render tells Bazaar's complete product story", (
 
 test("service network and local-state boundaries stay explicit", () => {
   const service = read("Service.qml")
-  assert.match(service, /catalogUrl:[\s\S]*https:\/\/omarchyplugins\.com\/catalog\.json/)
+  assert.match(service, /catalogUrl:[\s\S]*https:\/\/plugins\.omarchy\.org\/catalog\.json/)
+  // The old marketplace host answers the catalog with a 301, and fetchArgs()
+  // refuses redirects on purpose, so shipping it again reintroduces issue #8.
+  assert.doesNotMatch(service, /https:\/\/omarchyplugins\.com\/catalog\.json/)
+  assert.doesNotMatch(service, /"-L"|--location/)
   assert.match(service, /statsUrl:\s*"https:\/\/api\.omarchyplugins\.com\/v1\/stats"/)
   assert.match(service, /readonly property int pollIntervalSec:\s*1800/)
   assert.match(service, /readonly property int fetchTimeoutSec:\s*30/)

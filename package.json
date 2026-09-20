@@ -1,6 +1,6 @@
 {
   "name": "omarchy-bazaar",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "Bazaar widget for the Omarchy bar - node is used ONLY to run the offline unit suite; the shipped plugin requires no node runtime",
   "scripts": {

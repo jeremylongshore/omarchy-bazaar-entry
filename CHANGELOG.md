@@ -21,6 +21,14 @@ Nothing yet.
   redirects on purpose, so every fresh install stayed on "Loading the
   marketplace". Reported, diagnosed and fixed by @rdannenbring in #8.
 - Point the "open listing" link at the same new host.
+- Raise the response size bound from 8 MB to 64 MB. Current curl (8.21, what
+  Omarchy ships) counts the decoded body against `--max-filesize`, and the
+  marketplace catalog passed 8 MB decoded in September 2026, so every catalog
+  fetch was aborting with curl exit 63 even at the correct URL.
+- Say what went wrong instead of showing "Loading the marketplace" forever. The
+  catalog now keeps its own error, which a successful stats poll can no longer
+  clear, and the panel states it, with a specific message when the size bound is
+  the cause.
 
 ### Changed
 

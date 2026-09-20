@@ -521,3 +521,30 @@ test("installedCensus tolerates a missing or malformed census line", () => {
   assert.equal(Model.installedCensus("no census here"), -1)
   assert.equal(Model.installedCensus('{"__installedTotal":42}'), 42)
 })
+
+test("the body bound leaves real headroom over the live catalog and stays finite", () => {
+  // 2026-09-20: the live catalog is 9.1 MB decoded. Current curl counts decoded
+  // bytes against --max-filesize, so a bound under that size breaks every fetch.
+  assert.ok(Model.MAX_BODY_CHARS >= 4 * 9100000, "bound must clear today's catalog several times over")
+  assert.ok(Model.MAX_BODY_CHARS <= 128000000, "bound must stay finite")
+  assert.equal(Model.CURL_EXIT_TOO_LARGE, 63)
+})
+
+test("a failed fetch is described by what actually happened", () => {
+  assert.equal(Model.fetchErrorText("catalog", 63),
+    "catalog is larger than the 64 MB safety limit. Update Bazaar.")
+  assert.equal(Model.fetchErrorText("catalog", 28), "catalog fetch failed (curl exit 28)")
+  assert.equal(Model.fetchErrorText("stats", 6), "stats fetch failed (curl exit 6)")
+  assert.equal(Model.fetchErrorText("catalog", 0), "catalog fetch failed")
+  assert.equal(Model.fetchErrorText("catalog", "nonsense"), "catalog fetch failed")
+  assert.equal(Model.fetchErrorText("catalog"), "catalog fetch failed")
+  assert.equal(Model.fetchErrorText("", 7), "fetch fetch failed (curl exit 7)")
+})
+
+test("the empty state never disguises a failure as loading", () => {
+  assert.equal(Model.emptyStateText(""), "Loading the marketplace")
+  assert.equal(Model.emptyStateText(undefined), "Loading the marketplace")
+  assert.equal(Model.emptyStateText("   "), "Loading the marketplace")
+  assert.equal(Model.emptyStateText(" catalog fetch failed (HTTP 301) "),
+    "Could not load the marketplace: catalog fetch failed (HTTP 301)")
+})

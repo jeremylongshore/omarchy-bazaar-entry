@@ -170,7 +170,7 @@ test("the exported Bazaar model has a broad deterministic mutation signature", (
   }
 
   const signature = crypto.createHash("sha256").update(JSON.stringify(cases)).digest("hex")
-  assert.equal(signature, "2d719fd4549031621e28cb7768128ee5ebef3f51dd3c13f5e1d7c2d37ca58549")
+  assert.equal(signature, "bc71c809d272d0640e27088f7a431edf6fbb9d62fb34d53834f2d6a8bedbb680")
 })
 
 test("security boundaries remain observable at their exact edges", () => {

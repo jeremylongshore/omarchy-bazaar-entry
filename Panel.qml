@@ -394,7 +394,7 @@ Panel {
                 // never written into the copy: the marketplace grows daily and
                 // a number baked into a string is a false claim by tomorrow.
                 text: root.allRows.length === 0
-                  ? "Loading the marketplace"
+                  ? Model.emptyStateText(root.service ? root.service.catalogError : "")
                   : (Model.compact(root.visibleRows.length) + " of " +
                      Model.compact(root.allRows.length) + " plugins  ·  " +
                      Model.compact(Model.installedCount(root.installedMap)) +

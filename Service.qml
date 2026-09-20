@@ -16,7 +16,7 @@ import "Model.js" as Model
 // Auto-update is the whole point of the service, and it is built to cost almost
 // nothing when there is nothing new:
 //
-//   catalog.json   2.0 MB raw, 245 KB gzipped, and it carries an ETag, so an
+//   catalog.json   9.1 MB raw, 1.2 MB gzipped (2026-09-20) and growing. It carries an ETag, so an
 //                  unchanged catalog answers 304 with no body at all.
 //   /v1/stats      no ETag, but about 15 KB gzipped, so a plain fetch is
 //                  already cheaper than the machinery to avoid one.
@@ -38,8 +38,12 @@ Item {
   readonly property string internalPath: stateDir + "/internal.json"
   readonly property string savedPath: stateDir + "/saved.json"
 
+  // The marketplace moved to plugins.omarchy.org. The old host answers the catalog
+  // with a 301, and fetchArgs() refuses redirects on purpose, so the stale
+  // constant left every fresh install on "Loading the marketplace" (issue #8,
+  // diagnosed by @rdannenbring). The stats API still answers 200 on its own host.
   readonly property string catalogUrl:
-    "https://omarchyplugins.com/catalog.json"
+    "https://plugins.omarchy.org/catalog.json"
   readonly property string statsUrl: "https://api.omarchyplugins.com/v1/stats"
 
   readonly property int pollIntervalSec: 1800
@@ -72,6 +76,10 @@ Item {
   property var rows: []
   property int newCount: 0
   property string lastError: ""
+  // The catalog's own failure, kept apart from lastError on purpose. A successful
+  // stats poll clears lastError every 30 minutes, which used to erase the only
+  // sign that the catalog had never loaded.
+  property string catalogError: ""
   property bool cacheLoaded: false
   property bool savedLoaded: false
   property bool fetchingCatalog: false
@@ -204,7 +212,7 @@ Item {
   //
   // Flag choices, each a decision rather than a default:
   //   --proto =https  exactly https. No http, no file, no scp.
-  //   --compressed    the catalog is 2.0 MB raw and 245 KB gzipped.
+  //   --compressed    the catalog is 9.1 MB raw and 1.2 MB gzipped (2026-09-20).
   //   -D - -o -       headers AND body on one stdout, split in Model.js, so the
   //                   ETag round trip needs no temp files.
   //   -w http_code    the status on the final line.
@@ -260,23 +268,30 @@ Item {
       // KEEP the body we already have. Overwriting here with an empty body is
       // the bug this branch exists to prevent.
       root.catalogFetchedAt = Date.now()
+      root.catalogError = ""
       root.persistInternal()
       return
     }
     if (r.status !== 200 || !r.body) {
-      root.lastError = "catalog fetch failed"
+      root.catalogError = "catalog fetch failed (HTTP " + r.status + ")"
+      root.lastError = root.catalogError
       return
     }
     // Only accept a body that actually parses into entries. A CDN error page is
     // a 200 with a body, and replacing a good cache with one would empty the
     // widget until the next successful poll.
     var probe = Model.parseCatalog(r.body)
-    if (!probe.length) { root.lastError = "catalog response was not usable"; return }
+    if (!probe.length) {
+      root.catalogError = "catalog response was not usable"
+      root.lastError = root.catalogError
+      return
+    }
 
     root.catalogText = r.body
     root.catalogEtag = r.etag
     root.catalogFetchedAt = Date.now()
     root.lastError = ""
+    root.catalogError = ""
     catalogFile.setText(r.body)
     root.persistInternal()
     root.rebuild()
@@ -339,7 +354,8 @@ Item {
     onExited: function (code) {
       if (code !== 0 && root.fetchingCatalog) {
         root.fetchingCatalog = false
-        root.lastError = "catalog fetch failed"
+        root.catalogError = Model.fetchErrorText("catalog", code)
+        root.lastError = root.catalogError
       }
     }
   }

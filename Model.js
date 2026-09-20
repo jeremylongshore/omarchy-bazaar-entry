@@ -6,11 +6,45 @@
 // offline suite against captured real payloads. Logic that cannot be reached by
 // a test is logic that ships broken.
 
-// A hard ceiling before JSON.parse. curl's --max-filesize only bites when the
-// server sends Content-Length, and both of these hosts chunk, so this is the
-// real bound. The catalog is about 2.0 MB uncompressed today and grows with the
-// marketplace, so the cap is generous but finite.
-var MAX_BODY_CHARS = 8000000
+// A hard ceiling on a response body, handed to curl as --max-filesize.
+//
+// What curl counts depends on its version. Older curl (8.5) only compared the
+// limit with the compressed bytes on the wire. Current curl (8.21, what Omarchy
+// ships) enforces it during the transfer against the DECODED body and aborts
+// with exit 63. The previous value, 8,000,000, was sized when the catalog was
+// about 2 MB. The marketplace grew to 3,638 listings and 9.1 MB decoded by
+// 2026-09-20, so on a real install every catalog fetch died at 7.99 MB while the
+// same command passed on a developer box with the older curl.
+//
+// 64 MB is roughly seven times today's catalog. It is still finite, because an
+// unbounded read into JSON.parse is how a hostile or broken host takes the shell
+// down. When the limit is reached the panel says so (fetchErrorText), rather than
+// sitting on a loading message forever.
+var MAX_BODY_CHARS = 64000000
+
+// curl exit codes worth naming to a user. 63 is "maximum file size exceeded".
+var CURL_EXIT_TOO_LARGE = 63
+
+// What to tell the user when a fetch process exits non-zero.
+function fetchErrorText(what, exitCode) {
+  var name = String(what || "fetch")
+  var code = Number(exitCode)
+  if (code === CURL_EXIT_TOO_LARGE) {
+    return name + " is larger than the " + Math.round(MAX_BODY_CHARS / 1000000) +
+      " MB safety limit. Update Bazaar."
+  }
+  if (code === code && code !== 0) return name + " fetch failed (curl exit " + code + ")"
+  return name + " fetch failed"
+}
+
+// The line under the title when no listing has loaded yet. A failure is stated,
+// never disguised as loading: the first release showed "Loading the marketplace"
+// forever while the catalog fetch was failing on every poll.
+function emptyStateText(catalogError) {
+  var e = String(catalogError || "").trim()
+  if (!e) return "Loading the marketplace"
+  return "Could not load the marketplace: " + e
+}
 
 // How often each source is refreshed. The catalog is asked for on a long
 // cadence AND conditionally, so an unchanged catalog costs a 304 and no body at
@@ -614,7 +648,7 @@ function safeInstallCommand(cmd) {
 function listingUrl(id) {
   var s = String(id || "").trim()
   if (!/^[A-Za-z0-9][A-Za-z0-9._-]{0,120}$/.test(s)) return ""
-  return "https://omarchyplugins.com/plugin.html?id=" + encodeURIComponent(s)
+  return "https://plugins.omarchy.org/plugin.html?id=" + encodeURIComponent(s)
 }
 
 function repoUrl(repo) {
@@ -631,6 +665,9 @@ function repoUrl(repo) {
 if (typeof module !== "undefined") {
   module.exports = {
     MAX_BODY_CHARS: MAX_BODY_CHARS,
+    CURL_EXIT_TOO_LARGE: CURL_EXIT_TOO_LARGE,
+    fetchErrorText: fetchErrorText,
+    emptyStateText: emptyStateText,
     CATALOG_MAX_AGE_SEC: CATALOG_MAX_AGE_SEC,
     STATS_MAX_AGE_SEC: STATS_MAX_AGE_SEC,
     DEFAULT_LIST: DEFAULT_LIST,

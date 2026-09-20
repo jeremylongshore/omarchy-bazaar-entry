@@ -5,7 +5,7 @@ captured live and trimmed to a reviewable number of entries with their structure
 intact.
 
 ```bash
-curl -sfL https://omarchyplugins.com/catalog.json      -o /tmp/catalog.json
+curl -sf  https://plugins.omarchy.org/catalog.json     -o /tmp/catalog.json
 curl -sfL https://api.omarchyplugins.com/v1/stats      -o /tmp/stats.json
 ```
 

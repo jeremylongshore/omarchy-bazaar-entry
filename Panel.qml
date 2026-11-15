@@ -2,6 +2,9 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import qs.Commons
+// Qt 6.12 adds its own Color type, so Omarchy's palette singleton must be
+// qualified (docs/omarchy-shell.md, Theme tokens).
+import qs.Commons as Commons
 import qs.Ui
 import "Model.js" as Model
 
@@ -382,7 +385,7 @@ Panel {
                 textFormat: Text.PlainText
                 width: heroCol.width
                 elide: Text.ElideRight
-                color: root.bar ? root.bar.foreground : Color.foreground
+                color: root.bar ? root.bar.foreground : Commons.Color.foreground
                 font.family: root.bar ? root.bar.fontFamily : Style.font.family
                 font.pixelSize: Style.font.title
                 font.bold: true
@@ -407,7 +410,7 @@ Panel {
                 textFormat: Text.PlainText
                 width: heroCol.width
                 elide: Text.ElideRight
-                color: root.bar ? Qt.darker(root.bar.foreground, 1.4) : Color.muted
+                color: root.bar ? Qt.darker(root.bar.foreground, 1.4) : Commons.Color.muted
                 font.family: root.bar ? root.bar.fontFamily : Style.font.family
                 font.pixelSize: Style.font.caption
                 font.letterSpacing: 1
@@ -432,7 +435,7 @@ Panel {
               border.width: searchInput.activeFocus ? Style.hoverBorderWidth : Style.normalBorderWidth
               border.color: root.bar ? Qt.rgba(root.bar.foreground.r, root.bar.foreground.g,
                                                root.bar.foreground.b, Style.normalBorderAlpha)
-                                     : Color.foreground
+                                     : Commons.Color.foreground
 
               TextInput {
                 id: searchInput
@@ -442,7 +445,7 @@ Panel {
                 verticalAlignment: TextInput.AlignVCenter
                 text: root.query
                 onTextChanged: { root.query = text; root.cursor = 0 }
-                color: root.bar ? root.bar.foreground : Color.foreground
+                color: root.bar ? root.bar.foreground : Commons.Color.foreground
                 font.family: root.bar ? root.bar.fontFamily : Style.font.family
                 font.pixelSize: Style.font.body
                 selectByMouse: true
@@ -464,7 +467,7 @@ Panel {
                 text: "Press / to search by name, tag or author"
                 textFormat: Text.PlainText
                 elide: Text.ElideRight
-                color: root.bar ? Qt.darker(root.bar.foreground, 1.7) : Color.muted
+                color: root.bar ? Qt.darker(root.bar.foreground, 1.7) : Commons.Color.muted
                 font.family: root.bar ? root.bar.fontFamily : Style.font.family
                 font.pixelSize: Style.font.body
               }
@@ -496,7 +499,7 @@ Panel {
                 border.color: root.bar
                   ? Qt.rgba(root.bar.foreground.r, root.bar.foreground.g, root.bar.foreground.b,
                             selected ? Style.selectedBorderAlpha : Style.normalBorderAlpha)
-                  : Color.muted
+                  : Commons.Color.muted
 
                 Text {
                   id: chipText
@@ -506,8 +509,8 @@ Panel {
                   elide: Text.ElideRight
                   width: Math.min(implicitWidth, chipRow.width)
                   color: parent.selected
-                    ? (root.bar ? root.bar.foreground : Color.foreground)
-                    : (root.bar ? Qt.darker(root.bar.foreground, 1.5) : Color.muted)
+                    ? (root.bar ? root.bar.foreground : Commons.Color.foreground)
+                    : (root.bar ? Qt.darker(root.bar.foreground, 1.5) : Commons.Color.muted)
                   font.family: root.bar ? root.bar.fontFamily : Style.font.family
                   font.pixelSize: Style.font.caption
                   font.letterSpacing: 1
@@ -543,7 +546,7 @@ Panel {
                 border.color: root.bar
                   ? Qt.rgba(root.bar.foreground.r, root.bar.foreground.g, root.bar.foreground.b,
                             selected ? Style.selectedBorderAlpha : Style.normalBorderAlpha * 0.6)
-                  : Color.muted
+                  : Commons.Color.muted
 
                 Text {
                   id: kindText
@@ -553,8 +556,8 @@ Panel {
                   elide: Text.ElideRight
                   width: Math.min(implicitWidth, kindRow.width)
                   color: parent.selected
-                    ? (root.bar ? root.bar.foreground : Color.foreground)
-                    : (root.bar ? Qt.darker(root.bar.foreground, 1.7) : Color.muted)
+                    ? (root.bar ? root.bar.foreground : Commons.Color.foreground)
+                    : (root.bar ? Qt.darker(root.bar.foreground, 1.7) : Commons.Color.muted)
                   font.family: root.bar ? root.bar.fontFamily : Style.font.family
                   font.pixelSize: Style.font.caption
                   font.letterSpacing: 1
@@ -636,7 +639,7 @@ Panel {
                     width: statCol.width
                     horizontalAlignment: Text.AlignRight
                     elide: Text.ElideRight
-                    color: root.bar ? Qt.darker(root.bar.foreground, 1.3) : Color.foreground
+                    color: root.bar ? Qt.darker(root.bar.foreground, 1.3) : Commons.Color.foreground
                     font.family: root.bar ? root.bar.fontFamily : Style.font.family
                     font.pixelSize: Style.font.caption
                   }
@@ -647,7 +650,7 @@ Panel {
                     width: statCol.width
                     horizontalAlignment: Text.AlignRight
                     elide: Text.ElideRight
-                    color: root.bar ? Qt.darker(root.bar.foreground, 1.8) : Color.muted
+                    color: root.bar ? Qt.darker(root.bar.foreground, 1.8) : Commons.Color.muted
                     font.family: root.bar ? root.bar.fontFamily : Style.font.family
                     font.pixelSize: Style.font.caption
                   }
@@ -697,7 +700,7 @@ Panel {
                     textFormat: Text.PlainText
                     width: rowCol.width
                     elide: Text.ElideRight
-                    color: root.bar ? root.bar.foreground : Color.foreground
+                    color: root.bar ? root.bar.foreground : Commons.Color.foreground
                     font.family: root.bar ? root.bar.fontFamily : Style.font.family
                     font.pixelSize: Style.font.body
                     font.bold: rowItem.isCursor
@@ -710,7 +713,7 @@ Panel {
                     elide: Text.ElideRight
                     maximumLineCount: 1
                     visible: rowItem.modelData.description !== ""
-                    color: root.bar ? Qt.darker(root.bar.foreground, 1.5) : Color.muted
+                    color: root.bar ? Qt.darker(root.bar.foreground, 1.5) : Commons.Color.muted
                     font.family: root.bar ? root.bar.fontFamily : Style.font.family
                     font.pixelSize: Style.font.bodySmall
                   }
@@ -728,10 +731,10 @@ Panel {
                     width: rowCol.width
                     elide: Text.ElideRight
                     color: rowItem.modelData.stalled
-                      ? (root.bar ? root.bar.urgent : Color.urgent)
+                      ? (root.bar ? root.bar.urgent : Commons.Color.urgent)
                       : rowItem.hasUpdate
                         ? Qt.hsla(0.11, 0.55, 0.62, 1.0)
-                        : (root.bar ? Qt.darker(root.bar.foreground, 1.9) : Color.muted)
+                        : (root.bar ? Qt.darker(root.bar.foreground, 1.9) : Commons.Color.muted)
                     font.family: root.bar ? root.bar.fontFamily : Style.font.family
                     font.pixelSize: Style.font.caption
                     font.letterSpacing: 1
@@ -770,7 +773,7 @@ Panel {
                   : "No plugin matches. Press c to clear the search and filters."
                 textFormat: Text.PlainText
                 wrapMode: Text.WordWrap
-                color: root.bar ? Qt.darker(root.bar.foreground, 1.5) : Color.muted
+                color: root.bar ? Qt.darker(root.bar.foreground, 1.5) : Commons.Color.muted
                 font.family: root.bar ? root.bar.fontFamily : Style.font.family
                 font.pixelSize: Style.font.bodySmall
               }
@@ -794,7 +797,7 @@ Panel {
                 : "enter install  \u00b7  y copy  \u00b7  o listing  \u00b7  s save  \u00b7  i installed  \u00b7  k kind  \u00b7  t sort  \u00b7  c clear"
               textFormat: Text.PlainText
               wrapMode: Text.WordWrap
-              color: root.bar ? Qt.darker(root.bar.foreground, 1.7) : Color.muted
+              color: root.bar ? Qt.darker(root.bar.foreground, 1.7) : Commons.Color.muted
               font.family: root.bar ? root.bar.fontFamily : Style.font.family
               font.pixelSize: Style.font.caption
               font.letterSpacing: 1
